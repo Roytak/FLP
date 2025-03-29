@@ -32,10 +32,10 @@ instance Show DecisionTree where
         where
             showTree :: DecisionTree -> Int -> String
             showTree (Leaf label) indent = repeatSpaces indent ++ "Leaf: " ++ label
-            showTree (Node feature threshold left right) indent =
-                repeatSpaces indent ++ "Node: " ++ show feature ++ ", " ++ show threshold ++ "\n" ++
-                showTree left (indent + 1) ++ "\n" ++
-                showTree right (indent + 1)
+            showTree (Node feat thresh leftTree rightTree) indent =
+                repeatSpaces indent ++ "Node: " ++ show feat ++ ", " ++ show thresh ++ "\n" ++
+                showTree leftTree (indent + 1) ++ "\n" ++
+                showTree rightTree (indent + 1)
             repeatSpaces :: Int -> String
             repeatSpaces 0 = ""
             repeatSpaces n = "  " ++ repeatSpaces (n-1)
@@ -55,11 +55,11 @@ parseTree input = fst $ parseTreeRec input
         parseTreeRec [] = error "Parsing tree failed: Tree is empty."
         parseTreeRec (x:xs)
             | firstElem == "Node:" =
-                let feature = read (x !! 1) :: Int
-                    threshold = read (x !! 2) :: Float
+                let feat = read (x !! 1) :: Int
+                    thresh = read (x !! 2) :: Float
                     (leftTree, remainingLinesAfterLeft) = parseTreeRec xs
                     (rightTree, remainingLinesAfterRight) = parseTreeRec remainingLinesAfterLeft
-                in (Node feature threshold leftTree rightTree, remainingLinesAfterRight)
+                in (Node feat thresh leftTree rightTree, remainingLinesAfterRight)
             | firstElem == "Leaf:" =
                 let classLabelVal = x !! 1
                 in (Leaf classLabelVal, xs)
@@ -81,10 +81,10 @@ classify :: DecisionTree -> [[Float]] -> [String]
 classify tree data_ = map (classifyData tree) data_
     where
         classifyData :: DecisionTree -> [Float] -> String
-        classifyData (Leaf classLabel) _ = classLabel
-        classifyData (Node feature threshold left right) dataRow
-            | dataRow !! feature < threshold = classifyData left dataRow
-            | otherwise = classifyData right dataRow
+        classifyData (Leaf classLbl) _ = classLbl
+        classifyData (Node feat thresh leftTree rightTree) dataRow
+            | dataRow !! feat < thresh = classifyData leftTree dataRow
+            | otherwise = classifyData rightTree dataRow
 
 -- parse training data file
 parseTrainingDataF :: FilePath -> IO [([Float], String)]

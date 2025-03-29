@@ -1,23 +1,27 @@
-# Compiler and flags
 GHC = ghc
 GHC_FLAGS = -Wall -o flp-fun
 
-# Target executable
+SOURCE = flp-fun.hs
 TARGET = flp-fun
 
-# Source file
-SOURCE = flp-fun.hs
+MERLIN_LIBNCURSESW_PATH = /lib/x86_64-linux-gnu/libncursesw.so.6.4
+MERLIN_LIBS = ./merlin_libs
 
-# Default target
+# default target
 all: $(TARGET)
 
-# Compile the Haskell source file
 $(TARGET): $(SOURCE)
 	$(GHC) $(GHC_FLAGS) $(SOURCE)
 
-# Clean up compiled files
+# merlin target
+merlin:
+	mkdir -p $(MERLIN_LIBS)
+	ln -s $(MERLIN_LIBNCURSESW_PATH) $(MERLIN_LIBS)/libncursesw.so.5
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(MERLIN_LIBS) $(GHC) $(GHC_FLAGS) $(SOURCE)
+	rm -rf $(MERLIN_LIBS)
+
 clean:
 	rm -f $(TARGET) *.hi *.o
+	rm -rf $(MERLIN_LIBS)
 
-# Phony targets (not actual files)
-.PHONY: all clean
+.PHONY: all clean merlin
